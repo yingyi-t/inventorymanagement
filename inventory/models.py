@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import CheckConstraint, Q, F
+from django.db.models import CheckConstraint, UniqueConstraint, Q, F
 
 
 class Store(models.Model):
@@ -22,7 +22,8 @@ class MaterialStock(models.Model):
         verbose_name_plural = "Material Stocks"
         constraints = [CheckConstraint(check=Q(max_capacity__gt=0), name='max capacity >= 0'),
                         CheckConstraint(check=Q(current_capacity__gte=0) & Q(current_capacity__lte=F('max_capacity')), 
-                        name='current capacity >= to 0 and <= max capacity')]
+                        name='current capacity >= to 0 and <= max capacity'),
+                        UniqueConstraint(fields=['store', 'material'], name='unique material stock')]
     
     def __str__(self):
         return self.store, self.material
@@ -57,7 +58,8 @@ class MaterialQuantity(models.Model):
     class Meta:
         verbose_name_plural = "Material Quantities"
         unique_together = [['product', 'ingredient']]
-        constraints = [CheckConstraint(check=Q(quantity__gt=0), name='quantity > 0')]
+        constraints = [CheckConstraint(check=Q(quantity__gt=0), name='quantity > 0'),
+                        UniqueConstraint(fields=['product', 'ingredient'], name='unique product quantity')]
 
     def __str__(self):
         return self.product, self.ingredient, self.quantity
