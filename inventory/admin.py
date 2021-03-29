@@ -1,3 +1,9 @@
 from django.contrib import admin
+from .models import Store, Product, MaterialQuantity, Material, MaterialStock
 
-# Register your models here.
+
+admin.site.register(Store)
+admin.site.register(Product)
+admin.site.register(MaterialQuantity)
+admin.site.register(Material)
+admin.site.register(MaterialStock)
