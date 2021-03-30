@@ -53,11 +53,10 @@ class Product(models.Model):
 class MaterialQuantity(models.Model):
     product = models.ForeignKey('Product', related_name='material_quantities', on_delete=models.CASCADE)
     ingredient = models.ForeignKey('Material', related_name='material_quantities', on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=1)
 
     class Meta:
         verbose_name_plural = "Material Quantities"
-        unique_together = [['product', 'ingredient']]
         constraints = [CheckConstraint(check=Q(quantity__gt=0), name='quantity > 0'),
                         UniqueConstraint(fields=['product', 'ingredient'], name='unique product quantity')]
 
