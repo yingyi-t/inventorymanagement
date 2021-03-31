@@ -1,5 +1,6 @@
 from django.db import models
-from django.db.models import CheckConstraint, UniqueConstraint, Q, F
+from django.db.models import CheckConstraint, UniqueConstraint, Q, F, Value
+from django.db.models.functions import Concat
 
 
 class Store(models.Model):
@@ -26,7 +27,8 @@ class MaterialStock(models.Model):
                         UniqueConstraint(fields=['store', 'material'], name='unique material stock')]
     
     def __str__(self):
-        return self.store, self.material
+        string = (self.store, self.material)
+        return " ".join(str(s) for s in string)
 
 
 class Material(models.Model):
@@ -61,5 +63,6 @@ class MaterialQuantity(models.Model):
                         UniqueConstraint(fields=['product', 'ingredient'], name='unique product quantity')]
 
     def __str__(self):
-        return self.product, self.ingredient, self.quantity
+        string = (self.product, self.ingredient, self.quantity)
+        return " ".join(str(s) for s in string)
 
