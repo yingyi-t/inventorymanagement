@@ -1,7 +1,8 @@
-from django.db.models import fields
-from rest_framework import serializers
-from inventory.models import Store, MaterialStock, Material, MaterialQuantity, Product
 from django.contrib.auth.models import User
+
+from rest_framework import serializers
+
+from inventory.models import Store, MaterialStock, Material, MaterialQuantity, Product
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -38,3 +39,14 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
+
+
+class MaterialCapacityInPercentageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MaterialStock
+        fields = ['material', 'max_capacity', 'current_capacity', 'percentage_of_capacity',]
+
+    percentage_of_capacity = serializers.SerializerMethodField()
+
+    def get_percentage_of_capacity(self, obj):
+        return round(obj.current_capacity / obj.max_capacity * 100.0, 2)

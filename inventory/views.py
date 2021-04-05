@@ -1,8 +1,12 @@
-from django.shortcuts import render
 from django.contrib.auth.models import User
-from rest_framework import viewsets
+
+from rest_framework import viewsets, mixins
+from rest_framework.response import Response
+
 from inventory.models import Store, MaterialStock, Material, MaterialQuantity, Product
-from inventory.serializers import UserSerializer, StoreSerializer, MaterialStockSerializer, MaterialSerializer, MaterialQuantitySerializer, ProductSerializer
+from inventory.serializers import UserSerializer, StoreSerializer, MaterialStockSerializer, \
+                                    MaterialSerializer, MaterialQuantitySerializer, ProductSerializer, \
+                                    MaterialCapacityInPercentageSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -51,3 +55,21 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return Product.objects.filter(store__user=self.request.user)
+
+
+class InventoryViewSet(mixins.ListModelMixin,
+                       viewsets.GenericViewSet):
+    serializer_class = MaterialCapacityInPercentageSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return MaterialStock.objects.filter(store__user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = {
+            "materials": serializer.data,
+        }
+        return Response(data)
