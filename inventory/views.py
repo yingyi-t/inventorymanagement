@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from inventory.models import Store, MaterialStock, Material, MaterialQuantity, Product
 from inventory.serializers import UserSerializer, StoreSerializer, MaterialStockSerializer, \
                                     MaterialSerializer, MaterialQuantitySerializer, ProductSerializer, \
-                                    MaterialCapacityInPercentageSerializer
+                                    MaterialCapacityInPercentageSerializer, ProductCapacitySerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -73,3 +73,18 @@ class InventoryViewSet(mixins.ListModelMixin,
             "materials": serializer.data,
         }
         return Response(data)
+
+
+class ProductCapacityViewSet(mixins.ListModelMixin,
+                             viewsets.GenericViewSet):
+    serializer_class = ProductCapacitySerializer
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Store.objects.get(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset)
+
+        return Response(serializer.data)

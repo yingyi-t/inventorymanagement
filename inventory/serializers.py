@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import serializers
 
@@ -50,3 +51,40 @@ class MaterialCapacityInPercentageSerializer(serializers.ModelSerializer):
 
     def get_percentage_of_capacity(self, obj):
         return round(obj.current_capacity / obj.max_capacity * 100.0, 2)
+
+
+class ProductCapacitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Store
+        fields = ['remaining_capacities',]
+
+    remaining_capacities = serializers.SerializerMethodField()
+
+    def get_remaining_capacities(self, obj):
+        data = []
+
+        for product in obj.products.all():
+
+            material_quantities = MaterialQuantity.objects.filter(product=product.product_id)
+            material_quantities_list = []
+
+            for material_quantity in material_quantities:
+                quantity_needed = material_quantity.quantity
+                quantity_available = 0
+                
+                try: 
+                    stock = obj.material_stocks.get(material=material_quantity.ingredient)
+                    quantity_available = stock.current_capacity
+                except ObjectDoesNotExist:
+                    pass
+            
+                material_quantities_list.append(int(quantity_available/quantity_needed))
+
+            data.append(
+                {
+                    "product": product.product_id,
+                    "quantity": min(material_quantities_list)
+                }
+            )
+        
+        return data
