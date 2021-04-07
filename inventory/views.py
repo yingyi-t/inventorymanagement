@@ -1,7 +1,9 @@
 from functools import partial
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 
 from rest_framework import viewsets, mixins
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from inventory.models import Store, MaterialStock, Material, MaterialQuantity, Product
@@ -33,6 +35,20 @@ class MaterialStockViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return MaterialStock.objects.filter(store__user=self.request.user)
+        
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data
+        
+        if instance.current_capacity != data['current_capacity']:
+            raise ValidationError("Current capacity cannot be changed")
+        try:
+            serializer = self.get_serializer(instance=instance, data=data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+        except IntegrityError as e:
+            raise ValidationError(e.args[0])
+        return Response(serializer.data)
 
 
 class MaterialViewSet(viewsets.ModelViewSet):
