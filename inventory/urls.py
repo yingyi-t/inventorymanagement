@@ -15,6 +15,7 @@ router.register(r'material-quantities', views.MaterialQuantityViewSet, 'material
 router.register(r'products', views.ProductViewSet, 'products')
 router.register(r'inventory', views.InventoryViewSet, 'inventory')
 router.register(r'product-capacity', views.ProductCapacityViewSet, 'product-capacity')
+router.register(r'restock', views.RestockViewSet, 'restock')
 
 
 # The API URLs are now determined automatically by the router.

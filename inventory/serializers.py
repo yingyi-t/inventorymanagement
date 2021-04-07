@@ -88,3 +88,45 @@ class ProductCapacitySerializer(serializers.ModelSerializer):
             )
         
         return data
+
+
+class RestockListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+        final = []
+        need_to_save = []
+        
+        for item in self.initial_data:
+            try:
+                existed_material = instance.get(material=item['material'])
+            except:
+                raise serializers.ValidationError("Material with id of {id} not found in material stock"\
+                                                    .format(id=item['material']))
+
+            if not isinstance(item['quantity'], int):
+                raise serializers.ValidationError("Quantity is not an integer")
+            if item['quantity'] <= 0:
+                raise serializers.ValidationError("Quantity is not larger than 0")
+
+            if existed_material.current_capacity + item['quantity'] >= existed_material.max_capacity:
+                raise serializers.ValidationError("Current capacity cannot be greater than max capacity")
+            
+            existed_material.current_capacity = existed_material.current_capacity + item['quantity']
+            need_to_save.append(existed_material)
+
+        for save_item in need_to_save:
+            save_item.save()
+            final.append(existed_material)
+
+        return final
+
+
+class RestockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MaterialStock
+        fields = ['material', 'quantity',]
+        list_serializer_class = RestockListSerializer
+    
+    quantity = serializers.SerializerMethodField()
+
+    def get_quantity(self, obj):
+        return obj.max_capacity - obj.current_capacity
