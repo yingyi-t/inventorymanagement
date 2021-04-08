@@ -10,7 +10,7 @@ from inventory.models import Store, MaterialStock, Material, MaterialQuantity, P
 from inventory.serializers import UserSerializer, StoreSerializer, MaterialStockSerializer, \
                                     MaterialSerializer, MaterialQuantitySerializer, ProductSerializer, \
                                     MaterialCapacityInPercentageSerializer, ProductCapacitySerializer, \
-                                    RestockSerializer
+                                    RestockSerializer, SalesSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -151,3 +151,35 @@ class RestockViewSet(mixins.ListModelMixin,
             price = Material.objects.get(pk=material['material']).price
             total_price += price * material['quantity']
         return total_price
+
+
+class SalesViewSet(mixins.ListModelMixin,
+                    mixins.UpdateModelMixin,
+                    viewsets.GenericViewSet):
+    serializer_class = SalesSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Store.objects.get(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset()).products
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = {
+            "sale": serializer.data
+        }
+        return Response(data)
+
+    def create(self, request, *args, **kwargs):
+        data = request.data['sale']
+        if isinstance(data, list):
+            instance = self.get_queryset()
+            serializer = self.get_serializer(instance=instance, data=data, many=True, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            
+        final_data = {
+            "sale": data,
+        }
+        return Response(final_data)

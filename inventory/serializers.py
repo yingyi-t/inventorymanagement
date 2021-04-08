@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 
 from rest_framework import serializers
 
@@ -55,32 +56,17 @@ class MaterialCapacityInPercentageSerializer(serializers.ModelSerializer):
 
 class ProductCapacitySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Store
+        model = Product
         fields = ['product','quantity']
 
     product = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
 
-    def get_quantity(self, obj):
-        material_quantities = MaterialQuantity.objects.filter(product=obj.product_id)
-        material_quantities_list = []
-
-        for material_quantity in material_quantities:
-            quantity_needed = material_quantity.quantity
-            quantity_available = 0
-            
-            try: 
-                stock = obj.store_set.get().material_stocks.get(material=material_quantity.ingredient)
-                quantity_available = stock.current_capacity
-            except ObjectDoesNotExist:
-                pass
-        
-            material_quantities_list.append(int(quantity_available/quantity_needed))
-        
-        return min(material_quantities_list)
-
     def get_product(self, obj):
         return obj.product_id
+
+    def get_quantity(self, obj):
+        return get_product_available_quantity(obj)
 
 
 class RestockListSerializer(serializers.ListSerializer):
@@ -123,3 +109,61 @@ class RestockSerializer(serializers.ModelSerializer):
 
     def get_quantity(self, obj):
         return obj.max_capacity - obj.current_capacity
+
+
+class SalesListSerializer(serializers.ListSerializer):
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        for item in self.initial_data:
+            try:
+                current_product = instance.products.all().get(product_id=item["product"])
+            except:
+                raise serializers.ValidationError("Product with id of {id} not found in store" \
+                                                    .format(id=item['product']))
+            sold_quantity = item["quantity"]
+            if sold_quantity > get_product_available_quantity(current_product):
+                raise serializers.ValidationError("Product {id} sold quantity is more than the current available quantity" \
+                                                    .format(id=item['product']))
+            material_quantities = MaterialQuantity.objects.filter(product=item['product'])
+            for material_quantity in material_quantities:
+                material_stock_item = instance.material_stocks.get(material=material_quantity.ingredient)
+                material_stock_item.current_capacity = material_stock_item.current_capacity \
+                                                    - material_quantity.quantity * item['quantity']
+                material_stock_item.save()
+            
+        return self.initial_data
+
+
+class SalesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['product','quantity']
+        list_serializer_class = SalesListSerializer
+
+    product = serializers.SerializerMethodField()
+    quantity = serializers.SerializerMethodField()
+
+    def get_product(self, obj):
+        return obj.product_id
+
+    def get_quantity(self, obj):
+        return get_product_available_quantity(obj)
+
+
+def get_product_available_quantity(obj):
+    material_quantities = MaterialQuantity.objects.filter(product=obj.product_id)
+    material_quantities_list = []
+
+    for material_quantity in material_quantities:
+        quantity_needed = material_quantity.quantity
+        quantity_available = 0
+        
+        try: 
+            stock = obj.store_set.get().material_stocks.get(material=material_quantity.ingredient)
+            quantity_available = stock.current_capacity
+        except ObjectDoesNotExist:
+            pass
+    
+        material_quantities_list.append(int(quantity_available/quantity_needed))
+    
+    return min(material_quantities_list)
