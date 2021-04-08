@@ -56,38 +56,31 @@ class MaterialCapacityInPercentageSerializer(serializers.ModelSerializer):
 class ProductCapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
-        fields = ['remaining_capacities',]
+        fields = ['product','quantity']
 
-    remaining_capacities = serializers.SerializerMethodField()
+    product = serializers.SerializerMethodField()
+    quantity = serializers.SerializerMethodField()
 
-    def get_remaining_capacities(self, obj):
-        data = []
+    def get_quantity(self, obj):
+        material_quantities = MaterialQuantity.objects.filter(product=obj.product_id)
+        material_quantities_list = []
 
-        for product in obj.products.all():
-
-            material_quantities = MaterialQuantity.objects.filter(product=product.product_id)
-            material_quantities_list = []
-
-            for material_quantity in material_quantities:
-                quantity_needed = material_quantity.quantity
-                quantity_available = 0
-                
-                try: 
-                    stock = obj.material_stocks.get(material=material_quantity.ingredient)
-                    quantity_available = stock.current_capacity
-                except ObjectDoesNotExist:
-                    pass
+        for material_quantity in material_quantities:
+            quantity_needed = material_quantity.quantity
+            quantity_available = 0
             
-                material_quantities_list.append(int(quantity_available/quantity_needed))
-
-            data.append(
-                {
-                    "product": product.product_id,
-                    "quantity": min(material_quantities_list)
-                }
-            )
+            try: 
+                stock = obj.store_set.get().material_stocks.get(material=material_quantity.ingredient)
+                quantity_available = stock.current_capacity
+            except ObjectDoesNotExist:
+                pass
         
-        return data
+            material_quantities_list.append(int(quantity_available/quantity_needed))
+        
+        return min(material_quantities_list)
+
+    def get_product(self, obj):
+        return obj.product_id
 
 
 class RestockListSerializer(serializers.ListSerializer):

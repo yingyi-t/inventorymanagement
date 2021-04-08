@@ -102,10 +102,13 @@ class ProductCapacityViewSet(mixins.ListModelMixin,
             return Store.objects.get(user=self.request.user)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset)
+        queryset = self.filter_queryset(self.get_queryset()).products
+        serializer = self.get_serializer(queryset, many=True)
 
-        return Response(serializer.data)
+        data = {
+            "remaining_capacities": serializer.data
+        }
+        return Response(data)
 
 
 class RestockViewSet(mixins.ListModelMixin,
