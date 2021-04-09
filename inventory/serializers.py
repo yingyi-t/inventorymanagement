@@ -71,9 +71,7 @@ class ProductCapacitySerializer(serializers.ModelSerializer):
 
 class RestockListSerializer(serializers.ListSerializer):
     def update(self, instance, validated_data):
-        final = []
         need_to_save = []
-        
         for item in self.initial_data:
             try:
                 existed_material = instance.get(material=item['material'])
@@ -94,9 +92,8 @@ class RestockListSerializer(serializers.ListSerializer):
 
         for save_item in need_to_save:
             save_item.save()
-            final.append(existed_material)
 
-        return final
+        return need_to_save
 
 
 class RestockSerializer(serializers.ModelSerializer):
@@ -105,8 +102,12 @@ class RestockSerializer(serializers.ModelSerializer):
         fields = ['material', 'quantity',]
         list_serializer_class = RestockListSerializer
     
+    material = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
 
+    def get_material(self, obj):
+        return obj.material_id
+    
     def get_quantity(self, obj):
         return obj.max_capacity - obj.current_capacity
 

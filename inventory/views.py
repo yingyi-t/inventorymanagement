@@ -134,15 +134,17 @@ class RestockViewSet(mixins.ListModelMixin,
 
     def create(self, request, *args, **kwargs):
         data = request.data['materials']
+
         if isinstance(data, list):
             instance = self.get_queryset()
             serializer = self.get_serializer(instance=instance, data=data, many=True, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        final_data = {
-            "materials": data,
-            "total_price": self.get_total_price(data)
-        }
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            final_data = {
+                "materials": data,
+                "total_price": self.get_total_price(data)
+            }
+        
         return Response(final_data)
 
     def get_total_price(self, materials):
@@ -173,13 +175,14 @@ class SalesViewSet(mixins.ListModelMixin,
 
     def create(self, request, *args, **kwargs):
         data = request.data['sale']
+        
         if isinstance(data, list):
             instance = self.get_queryset()
             serializer = self.get_serializer(instance=instance, data=data, many=True, partial=True)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
-            
-        final_data = {
-            "sale": data,
-        }
+            final_data = {
+                "sale": data,
+            }
+        
         return Response(final_data)
