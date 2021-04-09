@@ -133,7 +133,10 @@ class RestockViewSet(mixins.ListModelMixin,
         return Response(data)
 
     def create(self, request, *args, **kwargs):
-        data = request.data['materials']
+        try:
+            data = request.data['materials']
+        except:
+            raise ValidationError("No materials given")
 
         if isinstance(data, list):
             instance = self.get_queryset()
@@ -174,7 +177,10 @@ class SalesViewSet(mixins.ListModelMixin,
         return Response(data)
 
     def create(self, request, *args, **kwargs):
-        data = request.data['sale']
+        try:
+            data = request.data['sale']
+        except:
+            raise ValidationError("No sale given")
         
         if isinstance(data, list):
             instance = self.get_queryset()

@@ -73,12 +73,17 @@ class RestockListSerializer(serializers.ListSerializer):
     def update(self, instance, validated_data):
         need_to_save = []
         for item in self.initial_data:
+            if "material" not in item:
+                raise serializers.ValidationError("Material field is not given")
+            if "quantity" not in item:
+                raise serializers.ValidationError("Quantity field is not given")
+            if not isinstance(item['material'], int):
+                raise serializers.ValidationError("Material is not an integer")
             try:
                 existed_material = instance.get(material=item['material'])
             except:
                 raise serializers.ValidationError("Material with id of {id} not found in material stock"\
                                                     .format(id=item['material']))
-
             if not isinstance(item['quantity'], int):
                 raise serializers.ValidationError("Quantity is not an integer")
             if item['quantity'] <= 0:
@@ -96,9 +101,8 @@ class RestockListSerializer(serializers.ListSerializer):
         return need_to_save
 
 
-class RestockSerializer(serializers.ModelSerializer):
+class RestockSerializer(serializers.Serializer):
     class Meta:
-        model = MaterialStock
         fields = ['material', 'quantity',]
         list_serializer_class = RestockListSerializer
     
@@ -116,11 +120,22 @@ class SalesListSerializer(serializers.ListSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         for item in self.initial_data:
+            if "product" not in item:
+                raise serializers.ValidationError("Product field is not given")
+            if "quantity" not in item:
+                raise serializers.ValidationError("Quantity field is not given")
+            if not isinstance(item['product'], int):
+                raise serializers.ValidationError("Product is not an integer")
             try:
                 current_product = instance.products.all().get(product_id=item["product"])
             except:
                 raise serializers.ValidationError("Product with id of {id} not found in store" \
                                                     .format(id=item['product']))
+            if not isinstance(item['quantity'], int):
+                raise serializers.ValidationError("Quantity is not an integer")
+            if item['quantity'] <= 0:
+                raise serializers.ValidationError("Quantity is not larger than 0")
+            
             sold_quantity = item["quantity"]
             if sold_quantity > get_product_available_quantity(current_product):
                 raise serializers.ValidationError("Product {id} sold quantity is more than the current available quantity" \
@@ -135,9 +150,8 @@ class SalesListSerializer(serializers.ListSerializer):
         return self.initial_data
 
 
-class SalesSerializer(serializers.ModelSerializer):
+class SalesSerializer(serializers.Serializer):
     class Meta:
-        model = Product
         fields = ['product','quantity']
         list_serializer_class = SalesListSerializer
 
