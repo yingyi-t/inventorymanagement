@@ -2,7 +2,7 @@ import factory
 from faker import Factory
 
 from django.contrib.auth.models import User
-from .models import Store, Product, MaterialQuantity, Material, MaterialStock
+from ..models import Store, Product, MaterialQuantity, Material, MaterialStock
 
 faker = Factory.create()
 
@@ -10,7 +10,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
     
-    name = faker.name()
+    username = faker.name()
     email = faker.email()
 
 
@@ -54,4 +54,3 @@ class MaterialQuantityFactory(factory.django.DjangoModelFactory):
     product = factory.SubFactory(ProductFactory)
     ingredient = factory.SubFactory(MaterialFactory)
     quantity = faker.random_int(min=1, max=9999)
-
