@@ -1,25 +1,32 @@
 import factory
-from faker import Factory
 
 from django.contrib.auth.models import User
 from ..models import Store, Product, MaterialQuantity, Material, MaterialStock
-
-faker = Factory.create()
 
 class UserFactory(factory.django.DjangoModelFactory):   
     class Meta:
         model = User
     
-    username = faker.name()
-    email = faker.email()
+    username = factory.Faker('name')
+    email = factory.Faker('email')
 
 
 class StoreFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Store
 
-    store_name = faker.name()
+    store_name = factory.Faker('name')
     user = factory.SubFactory(UserFactory)
+
+    @factory.post_generation
+    def products(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing
+            return
+        
+        if extracted:
+            for product in extracted:
+                self.products.add(product)
 
 
 class MaterialStockFactory(factory.django.DjangoModelFactory):
@@ -28,23 +35,23 @@ class MaterialStockFactory(factory.django.DjangoModelFactory):
 
     store = factory.SubFactory(StoreFactory)
     material = factory.SubFactory(Material)
-    max_capacity = faker.pyint(min_value=1, max_value=9999)
-    current_capacity = faker.pyint(min_value=1, max_value=max_capacity)
+    max_capacity = factory.Faker('pyint', min_value=600, max_value=9999)
+    current_capacity = factory.Faker('pyint', min_value=20, max_value=500)
     
 
 class MaterialFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Material
 
-    name = faker.name()
-    price = faker.pydecimal(right_digits=2, positive=True, max_value=9999)
+    name = factory.Faker('name')
+    price = factory.Faker('pydecimal', right_digits=2, positive=True, max_value=999)
 
 
 class ProductFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Product
 
-    name = faker.name()
+    name = factory.Faker('name')
 
 
 class MaterialQuantityFactory(factory.django.DjangoModelFactory):
@@ -53,4 +60,4 @@ class MaterialQuantityFactory(factory.django.DjangoModelFactory):
     
     product = factory.SubFactory(ProductFactory)
     ingredient = factory.SubFactory(MaterialFactory)
-    quantity = faker.random_int(min=1, max=9999)
+    quantity = factory.Faker('pyint', min_value=1, max_value=10)

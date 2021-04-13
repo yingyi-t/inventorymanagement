@@ -1,10 +1,8 @@
-import factory
 from faker import Faker
 
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase
 from rest_framework.authtoken.models import Token
-
 
 from inventory.tests.factories import UserFactory
 
@@ -19,7 +17,6 @@ class TokenAuthenticationTest(APITestCase):
         self.user = UserFactory.create(password=password)
         self.token = Token.objects.create(user=self.user)
         
-        self.client = APIClient()
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + str(self.token))
 
     def test_api_with_valid_token(self):
