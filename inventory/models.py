@@ -27,8 +27,7 @@ class MaterialStock(models.Model):
                         UniqueConstraint(fields=['store', 'material'], name='unique material stock')]
     
     def __str__(self):
-        string = (self.store, self.material)
-        return " ".join(str(s) for s in string)
+        return f"{self.store} {self.material}"
 
 
 class Material(models.Model):
@@ -46,7 +45,7 @@ class Material(models.Model):
 class Product(models.Model):
     product_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True)
-    materials = models.ManyToManyField(Material, through='MaterialQuantity', related_name='products')
+    materials = models.ManyToManyField('Material', through='MaterialQuantity', related_name='products')
 
     def __str__(self):
         return self.name
@@ -63,6 +62,5 @@ class MaterialQuantity(models.Model):
                         UniqueConstraint(fields=['product', 'ingredient'], name='unique product quantity')]
 
     def __str__(self):
-        string = (self.product, self.ingredient, self.quantity)
-        return " ".join(str(s) for s in string)
+        return f"{self.product} {self.ingredient} {self.quantity}"
 
