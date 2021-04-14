@@ -156,12 +156,8 @@ class RestockViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def _get_expected_object(self, obj):
-        return_object = {
-            "materials": [],
-            "total_price":0.0
-        }
         materials_list = []
-        total_price = 0
+        total_price = 0.0
         for material in obj:
             materials_list.append(
                 {
