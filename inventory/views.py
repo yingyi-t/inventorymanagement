@@ -147,6 +147,8 @@ class RestockViewSet(mixins.ListModelMixin,
                 "materials": data,
                 "total_price": self.get_total_price(data)
             }
+        else:
+            raise ValidationError("No materials given")
         
         return Response(final_data)
 
