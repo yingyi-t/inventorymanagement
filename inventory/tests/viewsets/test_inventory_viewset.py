@@ -24,10 +24,9 @@ class InventoryViewSetTest(APITestCase):
         material1 = MaterialFactory()
         material2 = MaterialFactory()
         material3 = MaterialFactory()
-        self.material_data = []
-        self.material_data.append(MaterialStockFactory(store=store, material=material1))
-        self.material_data.append(MaterialStockFactory(store=store, material=material2))
-        self.material_data.append(MaterialStockFactory(store=store, material=material3))
+        MaterialStockFactory(store=store, material=material1)
+        MaterialStockFactory(store=store, material=material2)
+        MaterialStockFactory(store=store, material=material3)
 
     def test_get_inventory(self):
         view = views.InventoryViewSet.as_view({'get': 'list'})
