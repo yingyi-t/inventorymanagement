@@ -12,7 +12,7 @@ from inventory.models import Material, MaterialStock
 class RestockViewSetTest(APITestCase):
     def setUp(self):
         """
-        Create an user with a token and a client with the token.
+        Create an user with a token and a client with the token. Create a store with materials and material stocks.
         """        
         password = Faker().pystr(min_chars=8, max_chars=16)
         self.user = UserFactory.create(password=password)
@@ -24,13 +24,9 @@ class RestockViewSetTest(APITestCase):
         material1 = MaterialFactory()
         material2 = MaterialFactory()
         material3 = MaterialFactory()
-        self.material_data = []
-        self.material_data.append(MaterialStockFactory(store=store, material=material1, \
-                                    current_capacity=20, max_capacity=100))
-        self.material_data.append(MaterialStockFactory(store=store, material=material2, \
-                                    current_capacity=20, max_capacity=100))
-        self.material_data.append(MaterialStockFactory(store=store, material=material3, \
-                                    current_capacity=20, max_capacity=100))
+        MaterialStockFactory(store=store, material=material1, current_capacity=20, max_capacity=100)
+        MaterialStockFactory(store=store, material=material2, current_capacity=20, max_capacity=100)
+        MaterialStockFactory(store=store, material=material3, current_capacity=20, max_capacity=100)
 
     def test_get_restock(self):
         view = views.RestockViewSet.as_view({'get': 'list'})
@@ -46,8 +42,8 @@ class RestockViewSetTest(APITestCase):
         view = views.RestockViewSet.as_view({'post':'create'})
         post_data = {
             "materials": [
-                {"material":1, "quantity":5},
-                {"material":2, "quantity":5}
+                {"material": 1, "quantity": 5},
+                {"material": 2, "quantity": 5}
                 ]
         }
         request = self.factory.post('/restock/', post_data, format='json')
@@ -70,7 +66,7 @@ class RestockViewSetTest(APITestCase):
     def test_post_restock_no_list_in_materials(self):
         view = views.RestockViewSet.as_view({'post':'create'})
         post_data = {
-            "materials": {"material":1, "quantity":"5"}
+            "materials": {"material": 1, "quantity": "5"}
             }
         request = self.factory.post('/restock/', post_data, format='json')
         force_authenticate(request, user=self.user, token=self.token)
@@ -81,7 +77,7 @@ class RestockViewSetTest(APITestCase):
     def test_post_restock_material_id_not_given(self):
         view = views.RestockViewSet.as_view({'post':'create'})
         post_data = {
-            "materials": [{"quantity":5}]
+            "materials": [{"quantity": 5}]
             }
         request = self.factory.post('/restock/', post_data, format='json')
         force_authenticate(request, user=self.user, token=self.token)
@@ -92,7 +88,7 @@ class RestockViewSetTest(APITestCase):
     def test_post_restock_quantity_not_given(self):
         view = views.RestockViewSet.as_view({'post':'create'})
         post_data = {
-            "materials": [{"material":1}]
+            "materials": [{"material": 1}]
             }
         request = self.factory.post('/restock/', post_data, format='json')
         force_authenticate(request, user=self.user, token=self.token)
@@ -103,7 +99,7 @@ class RestockViewSetTest(APITestCase):
     def test_post_restock_material_id_not_int(self):
         view = views.RestockViewSet.as_view({'post':'create'})
         post_data = {
-            "materials": [{"material":"5", "quantity":5}]
+            "materials": [{"material": "5", "quantity": 5}]
             }
         request = self.factory.post('/restock/', post_data, format='json')
         force_authenticate(request, user=self.user, token=self.token)
@@ -114,7 +110,7 @@ class RestockViewSetTest(APITestCase):
     def test_post_restock_material_id_invalid(self):
         view = views.RestockViewSet.as_view({'post':'create'})
         post_data = {
-            "materials": [{"material":5, "quantity":5}]
+            "materials": [{"material": 5, "quantity": 5}]
             }
         request = self.factory.post('/restock/', post_data, format='json')
         force_authenticate(request, user=self.user, token=self.token)
@@ -125,7 +121,7 @@ class RestockViewSetTest(APITestCase):
     def test_post_restock_quantity_not_int(self):
         view = views.RestockViewSet.as_view({'post':'create'})
         post_data = {
-            "materials": [{"material":1, "quantity":"5"}]
+            "materials": [{"material": 1, "quantity": "5"}]
             }
         request = self.factory.post('/restock/', post_data, format='json')
         force_authenticate(request, user=self.user, token=self.token)
@@ -136,7 +132,7 @@ class RestockViewSetTest(APITestCase):
     def test_post_restock_quantity_not_larger_than_zero(self):
         view = views.RestockViewSet.as_view({'post':'create'})
         post_data = {
-            "materials": [{"material":1, "quantity":-4}]
+            "materials": [{"material": 1, "quantity": -4}]
             }
         request = self.factory.post('/restock/', post_data, format='json')
         force_authenticate(request, user=self.user, token=self.token)
@@ -147,7 +143,7 @@ class RestockViewSetTest(APITestCase):
     def test_post_restock_quantity_exceed(self):
         view = views.RestockViewSet.as_view({'post':'create'})
         post_data = {
-            "materials": [{"material":1, "quantity":1000}]
+            "materials": [{"material": 1, "quantity": 1000}]
             }
         request = self.factory.post('/restock/', post_data, format='json')
         force_authenticate(request, user=self.user, token=self.token)

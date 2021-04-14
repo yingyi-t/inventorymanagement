@@ -13,7 +13,8 @@ from inventory.models import Product
 class ProductCapacityViewSetTest(APITestCase):
     def setUp(self):
         """
-        Create an user with a token and a client with the token.
+        Create an user with a token and a client with the token. Create a store with products, materials,
+        material stocks and material quantities.
         """        
         password = Faker().pystr(min_chars=8, max_chars=16)
         self.user = UserFactory.create(password=password)

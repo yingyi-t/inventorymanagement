@@ -13,8 +13,8 @@ from inventory.models import MaterialStock
 class SalesViewSetTest(APITestCase):
     def setUp(self):
         """
-        Create an user with a token and a client with the token. Create a store with products, material quantity,
-        material and material stock. 
+        Create an user with a token and a client with the token. Create a store with products, material quantities,
+        materials and material stocks. 
         """        
         password = Faker().pystr(min_chars=8, max_chars=16)
         self.user = UserFactory.create(password=password)
