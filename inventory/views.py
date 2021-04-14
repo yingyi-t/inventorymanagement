@@ -192,5 +192,7 @@ class SalesViewSet(mixins.ListModelMixin,
             final_data = {
                 "sale": data,
             }
+        else:
+            raise ValidationError("No sale given")
         
         return Response(final_data)
