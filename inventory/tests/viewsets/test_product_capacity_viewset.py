@@ -1,4 +1,4 @@
-from faker import Faker
+import factory
 
 from rest_framework import status
 from rest_framework.test import APITestCase, APIRequestFactory, force_authenticate
@@ -16,7 +16,7 @@ class ProductCapacityViewSetTest(APITestCase):
         Create an user with a token and a client with the token. Create a store with products, materials,
         material stocks and material quantities.
         """        
-        password = Faker().pystr(min_chars=8, max_chars=16)
+        password = factory.Faker('pystr', min_chars=8, max_chars=16)
         self.user = UserFactory.create(password=password)
         self.token = Token.objects.create(user=self.user)
         self.factory = APIRequestFactory()

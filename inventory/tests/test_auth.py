@@ -1,4 +1,4 @@
-from faker import Faker
+import factory
 
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -12,8 +12,7 @@ class TokenAuthenticationTest(APITestCase):
         """
         Create an user with a token and a client with the token.
         """
-        faker = Faker()
-        password = faker.pystr(min_chars=8, max_chars=16)
+        password = factory.Faker('pystr', min_chars=8, max_chars=16)
         self.user = UserFactory.create(password=password)
         self.token = Token.objects.create(user=self.user)
         
@@ -30,7 +29,6 @@ class TokenAuthenticationTest(APITestCase):
         self.assertEqual(str(response.data["detail"]), "Authentication credentials were not provided.")
 
     def test_api_with_invalid_token(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + Faker().pystr())
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + str(factory.Faker('pystr')))
         response = self.client.get('/users/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(str(response.data["detail"]), "Invalid token.")
