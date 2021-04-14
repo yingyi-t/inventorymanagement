@@ -157,7 +157,7 @@ class RestockViewSet(mixins.ListModelMixin,
         for material in materials:
             price = Material.objects.get(pk=material['material']).price
             total_price += price * material['quantity']
-        return total_price
+        return round(float(total_price), 2)
 
 
 class SalesViewSet(mixins.ListModelMixin,

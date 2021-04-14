@@ -164,11 +164,11 @@ class RestockViewSetTest(APITestCase):
                     "material": material.material.material_id, 
                     "quantity": material.max_capacity-material.current_capacity
                 })
-            total_price += (material.max_capacity-material.current_capacity) * material.material.price
+            total_price += round(float(material.max_capacity-material.current_capacity) * float(material.material.price), 2)
         
         return_object = {
             "materials": materials_list,
-            "total_price": total_price
+            "total_price": round(total_price, 2)
         }
 
         return return_object
@@ -176,11 +176,11 @@ class RestockViewSetTest(APITestCase):
     def _post_expected_object(self, obj):        
         total_price = 0
         for material in obj:
-            total_price += Material.objects.get(material_id=material['material']).price * material['quantity']
+            total_price += round(float(Material.objects.get(material_id=material['material']).price) * float(material['quantity']), 2)
 
         return_object = {
             "materials": obj,
-            "total_price": total_price
+            "total_price": round(total_price,2)
         }
 
         return return_object
