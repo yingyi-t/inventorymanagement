@@ -3,6 +3,7 @@ import factory
 from django.contrib.auth.models import User
 from ..models import Store, Product, MaterialQuantity, Material, MaterialStock
 
+
 class UserFactory(factory.django.DjangoModelFactory):   
     class Meta:
         model = User

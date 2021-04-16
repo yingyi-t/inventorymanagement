@@ -7,6 +7,7 @@ from rest_framework import serializers
 from inventory.models import Store, MaterialStock, Material, MaterialQuantity, Product
 from inventory import services 
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -57,7 +58,7 @@ class MaterialCapacityInPercentageSerializer(serializers.ModelSerializer):
 class ProductCapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['product','quantity']
+        fields = ['product','quantity',]
 
     product = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
@@ -152,7 +153,7 @@ class SalesListSerializer(serializers.ListSerializer):
 
 class SalesSerializer(serializers.Serializer):
     class Meta:
-        fields = ['product','quantity']
+        fields = ['product','quantity',]
         list_serializer_class = SalesListSerializer
 
     product = serializers.SerializerMethodField()
