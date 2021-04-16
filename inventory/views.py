@@ -123,7 +123,7 @@ class RestockViewSet(mixins.ListModelMixin,
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        total_price = self.get_total_price(serializer.data)
+        total_price = self._get_total_price(serializer.data)
 
         data = {
             "materials": serializer.data,
@@ -145,14 +145,14 @@ class RestockViewSet(mixins.ListModelMixin,
             self.perform_update(serializer)
             final_data = {
                 "materials": data,
-                "total_price": self.get_total_price(data)
+                "total_price": self._get_total_price(data)
             }
         else:
             raise ValidationError("No materials given")
         
         return Response(final_data)
 
-    def get_total_price(self, materials):
+    def _get_total_price(self, materials):
         total_price = 0
         for material in materials:
             price = Material.objects.get(pk=material['material']).price

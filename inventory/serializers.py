@@ -5,7 +5,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from inventory.models import Store, MaterialStock, Material, MaterialQuantity, Product
-
+from inventory import services 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -66,7 +66,7 @@ class ProductCapacitySerializer(serializers.ModelSerializer):
         return obj.product_id
 
     def get_quantity(self, obj):
-        return get_product_available_quantity(obj)
+        return services.get_product_available_quantity(obj)
 
 
 class RestockListSerializer(serializers.ListSerializer):
@@ -81,7 +81,7 @@ class RestockListSerializer(serializers.ListSerializer):
                 raise serializers.ValidationError("Material is not an integer")
             try:
                 existed_material = instance.get(material=item['material'])
-            except:
+            except ObjectDoesNotExist:
                 raise serializers.ValidationError("Material with id of {id} not found in material stock"\
                                                     .format(id=item['material']))
             if not isinstance(item['quantity'], int):
@@ -128,7 +128,7 @@ class SalesListSerializer(serializers.ListSerializer):
                 raise serializers.ValidationError("Product is not an integer")
             try:
                 current_product = instance.products.all().get(product_id=item["product"])
-            except:
+            except ObjectDoesNotExist:
                 raise serializers.ValidationError("Product with id of {id} not found in store" \
                                                     .format(id=item['product']))
             if not isinstance(item['quantity'], int):
@@ -137,7 +137,7 @@ class SalesListSerializer(serializers.ListSerializer):
                 raise serializers.ValidationError("Quantity is not larger than 0")
             
             sold_quantity = item["quantity"]
-            if sold_quantity > get_product_available_quantity(current_product):
+            if sold_quantity > services.get_product_available_quantity(current_product):
                 raise serializers.ValidationError("Product {id} sold quantity is more than the current available quantity" \
                                                     .format(id=item['product']))
             material_quantities = MaterialQuantity.objects.filter(product=item['product'])
@@ -162,23 +162,4 @@ class SalesSerializer(serializers.Serializer):
         return obj.product_id
 
     def get_quantity(self, obj):
-        return get_product_available_quantity(obj)
-
-
-def get_product_available_quantity(obj):
-    material_quantities = MaterialQuantity.objects.filter(product=obj.product_id)
-    material_quantities_list = []
-
-    for material_quantity in material_quantities:
-        quantity_needed = material_quantity.quantity
-        quantity_available = 0
-        
-        try: 
-            stock = obj.store_set.get().material_stocks.get(material=material_quantity.ingredient)
-            quantity_available = stock.current_capacity
-        except ObjectDoesNotExist:
-            pass
-    
-        material_quantities_list.append(int(quantity_available/quantity_needed))
-    
-    return min(material_quantities_list)
+        return services.get_product_available_quantity(obj)
