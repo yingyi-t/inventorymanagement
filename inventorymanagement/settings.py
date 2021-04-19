@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'inventory.apps.InventoryConfig',
-    
 ]
 
 MIDDLEWARE = [
@@ -126,12 +125,12 @@ STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # uncomment the line 131 to use the http://127.0.0.1:8000/ with login user,
-        # comment the line 131 to run the unit test
-        'rest_framework.authentication.SessionAuthentication', 
+        # uncomment the line 130 to use the http://127.0.0.1:8000/ with login user,
+        # comment the line 130 to run the unit test
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
 }

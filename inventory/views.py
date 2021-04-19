@@ -1,15 +1,18 @@
 from django.contrib.auth.models import User
 from django.db import IntegrityError
-
-from rest_framework import viewsets, mixins
+from rest_framework import mixins, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from inventory.models import Store, MaterialStock, Material, MaterialQuantity, Product
-from inventory.serializers import UserSerializer, StoreSerializer, MaterialStockSerializer, \
-                                    MaterialSerializer, MaterialQuantitySerializer, ProductSerializer, \
-                                    MaterialCapacityInPercentageSerializer, ProductCapacitySerializer, \
-                                    RestockSerializer, SalesSerializer
+from inventory.models import (Material, MaterialQuantity, MaterialStock,
+                              Product, Store)
+from inventory.serializers import (MaterialCapacityInPercentageSerializer,
+                                   MaterialQuantitySerializer,
+                                   MaterialSerializer, MaterialStockSerializer,
+                                   ProductCapacitySerializer,
+                                   ProductSerializer, RestockSerializer,
+                                   SalesSerializer, StoreSerializer,
+                                   UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -34,11 +37,11 @@ class MaterialStockViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return MaterialStock.objects.filter(store__user=self.request.user)
-        
+
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         data = request.data
-        
+
         if instance.current_capacity != data['current_capacity']:
             raise ValidationError("Current capacity cannot be changed")
         try:
@@ -55,7 +58,9 @@ class MaterialViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Material.objects.filter(material_stocks__store__user=self.request.user)
+            return Material.objects.filter(
+                material_stocks__store__user=self.request.user
+            )
 
 
 class MaterialQuantityViewSet(viewsets.ModelViewSet):
@@ -63,7 +68,9 @@ class MaterialQuantityViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return MaterialQuantity.objects.filter(product__store__user=self.request.user)
+            return MaterialQuantity.objects.filter(
+                product__store__user=self.request.user
+            )
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -74,8 +81,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Product.objects.filter(store__user=self.request.user)
 
 
-class InventoryViewSet(mixins.ListModelMixin,
-                       viewsets.GenericViewSet):
+class InventoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = MaterialCapacityInPercentageSerializer
 
     def get_queryset(self):
@@ -86,14 +92,11 @@ class InventoryViewSet(mixins.ListModelMixin,
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
 
-        data = {
-            "materials": serializer.data,
-        }
+        data = {"materials": serializer.data}
         return Response(data)
 
 
-class ProductCapacityViewSet(mixins.ListModelMixin,
-                             viewsets.GenericViewSet):
+class ProductCapacityViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = ProductCapacitySerializer
 
     def get_queryset(self):
@@ -104,15 +107,13 @@ class ProductCapacityViewSet(mixins.ListModelMixin,
         queryset = self.filter_queryset(self.get_queryset()).products
         serializer = self.get_serializer(queryset, many=True)
 
-        data = {
-            "remaining_capacities": serializer.data
-        }
+        data = {"remaining_capacities": serializer.data}
         return Response(data)
 
 
-class RestockViewSet(mixins.ListModelMixin,
-                     mixins.UpdateModelMixin,
-                     viewsets.GenericViewSet):
+class RestockViewSet(
+    mixins.ListModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+):
     serializer_class = RestockSerializer
 
     def get_queryset(self):
@@ -124,10 +125,7 @@ class RestockViewSet(mixins.ListModelMixin,
         serializer = self.get_serializer(queryset, many=True)
         total_price = self._get_total_price(serializer.data)
 
-        data = {
-            "materials": serializer.data,
-            "total_price": total_price
-        }
+        data = {"materials": serializer.data, "total_price": total_price}
 
         return Response(data)
 
@@ -139,16 +137,15 @@ class RestockViewSet(mixins.ListModelMixin,
 
         if isinstance(data, list):
             instance = self.get_queryset()
-            serializer = self.get_serializer(instance=instance, data=data, many=True, partial=True)
+            serializer = self.get_serializer(
+                instance=instance, data=data, many=True, partial=True
+            )
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
-            final_data = {
-                "materials": data,
-                "total_price": self._get_total_price(data)
-            }
+            final_data = {"materials": data, "total_price": self._get_total_price(data)}
         else:
             raise ValidationError("No materials given")
-        
+
         return Response(final_data)
 
     def _get_total_price(self, materials):
@@ -159,9 +156,9 @@ class RestockViewSet(mixins.ListModelMixin,
         return round(float(total_price), 2)
 
 
-class SalesViewSet(mixins.ListModelMixin,
-                    mixins.UpdateModelMixin,
-                    viewsets.GenericViewSet):
+class SalesViewSet(
+    mixins.ListModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+):
     serializer_class = SalesSerializer
 
     def get_queryset(self):
@@ -172,9 +169,7 @@ class SalesViewSet(mixins.ListModelMixin,
         queryset = self.filter_queryset(self.get_queryset()).products
         serializer = self.get_serializer(queryset, many=True)
 
-        data = {
-            "sale": serializer.data
-        }
+        data = {"sale": serializer.data}
         return Response(data)
 
     def create(self, request, *args, **kwargs):
@@ -182,16 +177,16 @@ class SalesViewSet(mixins.ListModelMixin,
             data = request.data['sale']
         except:
             raise ValidationError("No sale given")
-        
+
         if isinstance(data, list):
             instance = self.get_queryset()
-            serializer = self.get_serializer(instance=instance, data=data, many=True, partial=True)
+            serializer = self.get_serializer(
+                instance=instance, data=data, many=True, partial=True
+            )
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
-            final_data = {
-                "sale": data,
-            }
+            final_data = {"sale": data}
         else:
             raise ValidationError("No sale given")
-        
+
         return Response(final_data)

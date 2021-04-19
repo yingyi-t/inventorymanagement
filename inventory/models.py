@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import CheckConstraint, UniqueConstraint, Q, F
+from django.db.models import CheckConstraint, F, Q, UniqueConstraint
 
 
 class Store(models.Model):
@@ -13,18 +13,29 @@ class Store(models.Model):
 
 
 class MaterialStock(models.Model):
-    store = models.ForeignKey('Store', on_delete=models.CASCADE, related_name='material_stocks')
-    material = models.ForeignKey('Material', on_delete=models.CASCADE, related_name='material_stocks')
+    store = models.ForeignKey(
+        'Store', on_delete=models.CASCADE, related_name='material_stocks'
+    )
+    material = models.ForeignKey(
+        'Material', on_delete=models.CASCADE, related_name='material_stocks'
+    )
     max_capacity = models.PositiveIntegerField(default=9999)
     current_capacity = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name_plural = "Material Stocks"
-        constraints = [CheckConstraint(check=Q(max_capacity__gt=0), name='max capacity >= 0'),
-                        CheckConstraint(check=Q(current_capacity__gte=0) & Q(current_capacity__lte=F('max_capacity')), 
-                        name='current capacity >= to 0 and <= max capacity'),
-                        UniqueConstraint(fields=['store', 'material'], name='unique material stock')]
-    
+        constraints = [
+            CheckConstraint(check=Q(max_capacity__gt=0), name="max capacity >= 0"),
+            CheckConstraint(
+                check=Q(current_capacity__gte=0)
+                & Q(current_capacity__lte=F('max_capacity')),
+                name="current capacity >= to 0 and <= max capacity",
+            ),
+            UniqueConstraint(
+                fields=['store', 'material'], name="unique material stock"
+            ),
+        ]
+
     def __str__(self):
         return f"{self.store} {self.material}"
 
@@ -35,7 +46,7 @@ class Material(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     class Meta:
-        constraints = [CheckConstraint(check=Q(price__gte=0), name='price >= 0')]
+        constraints = [CheckConstraint(check=Q(price__gte=0), name="price >= 0")]
 
     def __str__(self):
         return self.name
@@ -44,22 +55,31 @@ class Material(models.Model):
 class Product(models.Model):
     product_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True)
-    materials = models.ManyToManyField('Material', through='MaterialQuantity', related_name='products')
+    materials = models.ManyToManyField(
+        'Material', through='MaterialQuantity', related_name='products'
+    )
 
     def __str__(self):
         return self.name
 
 
 class MaterialQuantity(models.Model):
-    product = models.ForeignKey('Product', related_name='material_quantities', on_delete=models.CASCADE)
-    ingredient = models.ForeignKey('Material', related_name='material_quantities', on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        'Product', related_name='material_quantities', on_delete=models.CASCADE
+    )
+    ingredient = models.ForeignKey(
+        'Material', related_name='material_quantities', on_delete=models.CASCADE
+    )
     quantity = models.PositiveIntegerField(default=1)
 
     class Meta:
         verbose_name_plural = "Material Quantities"
-        constraints = [CheckConstraint(check=Q(quantity__gt=0), name='quantity > 0'),
-                        UniqueConstraint(fields=['product', 'ingredient'], name='unique product quantity')]
+        constraints = [
+            CheckConstraint(check=Q(quantity__gt=0), name="quantity > 0"),
+            UniqueConstraint(
+                fields=['product', 'ingredient'], name="unique product quantity"
+            ),
+        ]
 
     def __str__(self):
         return f"{self.product} {self.ingredient} {self.quantity}"
-

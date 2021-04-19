@@ -1,14 +1,14 @@
 import factory
-
 from django.contrib.auth.models import User
 
-from inventory.models import Store, Product, MaterialQuantity, Material, MaterialStock
+from inventory.models import (Material, MaterialQuantity, MaterialStock,
+                              Product, Store)
 
 
-class UserFactory(factory.django.DjangoModelFactory):   
+class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
-    
+
     username = factory.Faker('name')
     email = factory.Faker('email')
 
@@ -23,9 +23,8 @@ class StoreFactory(factory.django.DjangoModelFactory):
     @factory.post_generation
     def products(self, create, extracted, **kwargs):
         if not create:
-            # Simple build, do nothing
             return
-        
+
         if extracted:
             for product in extracted:
                 self.products.add(product)
@@ -39,7 +38,7 @@ class MaterialStockFactory(factory.django.DjangoModelFactory):
     material = factory.SubFactory(Material)
     max_capacity = factory.Faker('pyint', min_value=500, max_value=9999)
     current_capacity = factory.Faker('pyint', min_value=20, max_value=500)
-    
+
 
 class MaterialFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -59,7 +58,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
 class MaterialQuantityFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = MaterialQuantity
-    
+
     product = factory.SubFactory(ProductFactory)
     ingredient = factory.SubFactory(MaterialFactory)
     quantity = factory.Faker('pyint', min_value=1, max_value=10)

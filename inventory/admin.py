@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from inventory.models import Store, Product, MaterialQuantity, Material, MaterialStock
-
+from inventory.models import (Material, MaterialQuantity, MaterialStock,
+                              Product, Store)
 
 admin.site.register(Store)
 admin.site.register(Product)
